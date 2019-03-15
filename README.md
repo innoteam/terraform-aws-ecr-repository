@@ -2,7 +2,7 @@
 
 Terraform module that manages AWS ECR repositories
 
-This module creates an AWS ECR repository resource and 
+This module creates an AWS ECR repository resource and creates a repository policy that allow AWS accounts to read from it.
 
 
 ## Input variables
