@@ -26,27 +26,39 @@ resource "aws_ecr_repository_policy" "allow_account_pull" {
   policy = data.aws_iam_policy_document.allow_account_pull.json
 }
 
+locals {
+  lifecycle_policy_description_any    = "Keep last ${var.images_retention_count} images"
+  lifecycle_policy_description_tagged = "${local.lifecycle_policy_description_any} with tag prefix ${replace(join(",", var.images_retention_tag_prefix_list), ",", " and ")}"
+  lifecycle_policy_templates = {
+    "any"    = data.template_file.aws_ecr_lifecycle_policy_any.rendered
+    "tagged" = data.template_file.aws_ecr_lifecycle_policy_tagged.rendered
+  }
+}
+
+data "template_file" "aws_ecr_lifecycle_policy_any" {
+  template = "${file("${path.module}/templates/aws_ecr_lifecycle_policy_any.tpl")}"
+
+  vars = {
+    description  = local.lifecycle_policy_description_any
+    tag_status   = "any"
+    count_number = var.images_retention_count
+  }
+}
+
+data "template_file" "aws_ecr_lifecycle_policy_tagged" {
+  template = "${file("${path.module}/templates/aws_ecr_lifecycle_policy_tagged.tpl")}"
+
+  vars = {
+    description     = local.lifecycle_policy_description_tagged
+    tag_status      = "tagged"
+    tag_prefix_list = "${jsonencode(var.images_retention_tag_prefix_list)}"
+    count_number    = var.images_retention_count
+  }
+}
+
 resource "aws_ecr_lifecycle_policy" "basic" {
   repository = aws_ecr_repository.this.name
 
-  policy = <<EOF
-{
-  "rules": [
-    {
-      "rulePriority": 1,
-      "description": "Keep last ${var.images_retention_count} images with tag prefix ${replace(join(",", var.images_retention_tag_prefix_list), ",", " and ")}",
-      "selection": {
-        "tagStatus": "tagged",
-        "tagPrefixList": ${jsonencode(var.images_retention_tag_prefix_list)},
-        "countType": "imageCountMoreThan",
-        "countNumber": ${var.images_retention_count}
-      },
-      "action": {
-        "type": "expire"
-      }
-    }
-  ]
-}
-EOF
+  policy = local.lifecycle_policy_templates[var.images_retention_tag_status]
 }
 

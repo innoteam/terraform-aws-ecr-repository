@@ -19,8 +19,23 @@ variable "images_retention_count" {
   description = "The number of images to keep before expiration"
 }
 
+variable "images_retention_tag_status" {
+  type        = string
+  default     = "any"
+  description = <<EOF
+Determines whether the lifecycle policy rule that you are adding specifies a tag for an image.
+Acceptable options are 'tagged' or 'any'.
+If you specify any, then all images have the rule applied to them.
+If you specify tagged, then you must also specify a tagPrefixList value.
+EOF
+}
+
 variable "images_retention_tag_prefix_list" {
   type        = list(string)
   default     = []
-  description = "The number of images to keep before expiration"
+  description = <<EOF
+Only used if you specified "tagStatus": "tagged".
+You must specify a comma-separated list of image tag prefixes on which to take action with your lifecycle policy.
+If you specify multiple tags, only the images with all specified tags are selected.
+  EOF
 }
