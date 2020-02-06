@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "this" {
-  name = "${var.name}"
+  name = var.name
 }
 
 data "aws_iam_policy_document" "allow_account_pull" {
@@ -15,13 +15,14 @@ data "aws_iam_policy_document" "allow_account_pull" {
 
     principals {
       type        = "AWS"
-      identifiers = ["${var.aws_accounts_allowed_to_pull}"]
+      identifiers = var.aws_accounts_allowed_to_pull
     }
   }
 }
 
 resource "aws_ecr_repository_policy" "allow_account_pull" {
-  repository = "${aws_ecr_repository.this.name}"
+  repository = aws_ecr_repository.this.name
 
-  policy = "${data.aws_iam_policy_document.allow_account_pull.json}"
+  policy = data.aws_iam_policy_document.allow_account_pull.json
 }
+
