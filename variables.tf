@@ -14,3 +14,13 @@ EOF
 
 }
 
+variable "images_retention_count" {
+  type        = number
+  description = "The number of images to keep before expiration"
+}
+
+variable "images_retention_tag_prefix_list" {
+  type        = list(string)
+  default     = []
+  description = "The number of images to keep before expiration"
+}

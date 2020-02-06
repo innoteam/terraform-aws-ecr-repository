@@ -4,15 +4,7 @@ Terraform module that manages AWS ECR repositories
 
 This module creates an AWS ECR repository resource and creates a repository policy that allow AWS accounts to read from it.
 
-
-## Input variables
-
-* `name` (string): The name of the ECR repository.
-* `aws_accounts_allowed_to_pull` (list): The IDs of the AWS accounts that will be allowed to pull images from this repository. Specify '*' to make the repository public.
-
-## Outputs
-
-* `arn` (string): The ARN of the ECR repository.## Providers
+## Providers
 
 | Name | Version |
 |------|---------|
@@ -23,6 +15,8 @@ This module creates an AWS ECR repository resource and creates a repository poli
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:-----:|
 | aws\_accounts\_allowed\_to\_pull | The IDs of the AWS accounts that will be allowed   to pull images from this repository.   Specify '\*' to allow all AWS accounts. | `list(string)` | n/a | yes |
+| images\_retention\_count | The number of images to keep before expiration | `number` | n/a | yes |
+| images\_retention\_tag\_prefix\_list | The number of images to keep before expiration | `list(string)` | `[]` | no |
 | name | The name of the ECR repository | `any` | n/a | yes |
 
 ## Outputs
