@@ -26,9 +26,18 @@ resource "aws_ecr_repository_policy" "allow_account_pull" {
   policy = data.aws_iam_policy_document.allow_account_pull.json
 }
 
+# -------------------------------------------------------------------------------
+# The policy is composed of these rules:
+# - Keep x images with:
+# - - 'any' tag
+# - - (or) with tags that have a 'specified' list of prefixes
+# - Keep for x days images without tags
+# -------------------------------------------------------------------------------
+
 locals {
-  lifecycle_policy_description_any    = "Keep last ${var.images_retention_count} images"
-  lifecycle_policy_description_tagged = "${local.lifecycle_policy_description_any} with tag prefix ${replace(join(",", var.images_retention_tag_prefix_list), ",", " and ")}"
+  lifecycle_policy_rule_any_description      = "Keep last ${var.images_retention_count} images"
+  lifecycle_policy_rule_tagged_description   = "${local.lifecycle_policy_rule_any_description} with tag prefix ${replace(join(",", var.images_retention_tag_prefix_list), ",", " and ")}"
+  lifecycle_policy_rule_untagged_description = "Keep untagged images for ${var.untagged_images_retention_days} days"
   lifecycle_policy_templates = {
     "any"    = data.template_file.aws_ecr_lifecycle_policy_any.rendered
     "tagged" = data.template_file.aws_ecr_lifecycle_policy_tagged.rendered
@@ -39,9 +48,10 @@ data "template_file" "aws_ecr_lifecycle_policy_any" {
   template = "${file("${path.module}/templates/aws_ecr_lifecycle_policy_any.tpl")}"
 
   vars = {
-    description  = local.lifecycle_policy_description_any
-    tag_status   = "any"
-    count_number = var.images_retention_count
+    any_description         = local.lifecycle_policy_rule_any_description
+    any_retention_count     = var.images_retention_count
+    untagged_description    = local.lifecycle_policy_rule_untagged_description
+    untagged_retention_days = var.untagged_images_retention_days
   }
 }
 
@@ -49,10 +59,11 @@ data "template_file" "aws_ecr_lifecycle_policy_tagged" {
   template = "${file("${path.module}/templates/aws_ecr_lifecycle_policy_tagged.tpl")}"
 
   vars = {
-    description     = local.lifecycle_policy_description_tagged
-    tag_status      = "tagged"
-    tag_prefix_list = "${jsonencode(var.images_retention_tag_prefix_list)}"
-    count_number    = var.images_retention_count
+    tagged_description      = local.lifecycle_policy_rule_tagged_description
+    tagged_tag_prefix_list  = "${jsonencode(var.images_retention_tag_prefix_list)}"
+    tagged_retention_count  = var.images_retention_count
+    untagged_description    = local.lifecycle_policy_rule_untagged_description
+    untagged_retention_days = var.untagged_images_retention_days
   }
 }
 
@@ -61,4 +72,3 @@ resource "aws_ecr_lifecycle_policy" "basic" {
 
   policy = local.lifecycle_policy_templates[var.images_retention_tag_status]
 }
-
