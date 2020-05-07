@@ -2,11 +2,24 @@
   "rules": [
     {
       "rulePriority": 1,
-      "description": "${description}",
+      "description": "${untagged_description}",
       "selection": {
-        "tagStatus": "${tag_status}",
+        "tagStatus": "untagged",
+        "countType": "sinceImagePushed",
+        "countUnit": "days",
+        "countNumber": ${untagged_retention_days}
+      },
+      "action": {
+        "type": "expire"
+      }
+    },
+    {
+      "rulePriority": 2,
+      "description": "${any_description}",
+      "selection": {
+        "tagStatus": "any",
         "countType": "imageCountMoreThan",
-        "countNumber": ${count_number}
+        "countNumber": ${any_retention_count}
       },
       "action": {
         "type": "expire"
